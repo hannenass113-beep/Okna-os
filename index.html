@@ -1,0 +1,1205 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-select=no">
+  <title>Macrosoft Okna XP Professional</title>
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; font-family: Tahoma, 'Segoe UI', sans-serif; background: #000; }
+
+    /* СКРЫТАЯ КНОПКА ПРОПУСКА */
+    #skip-btn {
+      position: fixed; top: 6px; right: 6px; width: 14px; height: 14px;
+      background: #38bdf8; opacity: 0.35; z-index: 1000000; cursor: pointer;
+      border-radius: 2px; border: 1px solid rgba(255,255,255,0.5);
+      transition: opacity 0.2s;
+    }
+    #skip-btn:hover { opacity: 0.9; }
+
+    /* 1. ЭКРАН BIOS */
+    #bios-screen {
+      position: fixed; inset: 0; background: black; color: #bbb;
+      font-family: 'Courier New', monospace; font-size: 13px; padding: 20px;
+      z-index: 99999; display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .bios-header { display: flex; justify-content: space-between; }
+    .energy-logo { color: #facc15; font-size: 9px; line-height: 9px; white-space: pre; }
+
+    /* 2. ЭКРАН ЗАГРУЗКИ OKNA */
+    #bootscreen {
+      position: fixed; inset: 0; background: black; z-index: 9999;
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+    }
+    .okna-logo { color: white; font-size: 28px; font-weight: bold; margin-bottom: 25px; text-align: center; }
+    .okna-logo span { color: #2563eb; }
+    .boot-loader {
+      width: 160px; height: 14px; border: 2px solid #555; border-radius: 4px;
+      padding: 1px; overflow: hidden; position: relative; background: #111;
+    }
+    .boot-bars {
+      width: 35px; height: 100%; background: linear-gradient(90deg, #2563eb, #60a5fa, #2563eb);
+      border-radius: 2px; position: absolute; animation: bootSlide 1.5s infinite linear;
+    }
+    @keyframes bootSlide { 0% { left: -35px; } 100% { left: 160px; } }
+
+    /* 3. РАБОЧИЙ СТОЛ */
+    #desktop {
+      position: fixed; inset: 0;
+      background: url('https://upload.wikimedia.org/wikipedia/en/2/27/Bliss_%28Windows_XP%29.png') no-repeat center center fixed;
+      background-size: cover; display: none;
+    }
+
+    .desktop-icons {
+      padding: 14px; display: flex; flex-direction: column; flex-wrap: wrap;
+      gap: 16px; width: fit-content; max-height: calc(100vh - 40px);
+    }
+    .icon {
+      width: 82px; text-align: center; cursor: pointer; color: white;
+      text-shadow: 1px 1px 2px black; font-size: 11px; padding: 4px; border-radius: 3px;
+    }
+    .icon-img { font-size: 32px; margin-bottom: 3px; display: block; }
+    .icon:hover { background: rgba(255, 255, 255, 0.15); }
+    .icon:active { background: rgba(0, 85, 220, 0.45); }
+
+    /* 4. ПАНЕЛЬ ЗАДАЧ */
+    #taskbar {
+      position: absolute; bottom: 0; width: 100%; height: 32px;
+      background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #245edb 92%, #1941a5 100%);
+      display: flex; justify-content: space-between; align-items: center; z-index: 1000;
+      border-top: 1px solid #3f8cf3;
+    }
+
+    #start-btn {
+      height: 100%; padding: 0 14px 0 10px; background: linear-gradient(to bottom, #388e3c 0%, #4caf50 15%, #2e7d32 85%, #1b5e20 100%);
+      border: none; border-top-right-radius: 10px; border-bottom-right-radius: 10px;
+      color: white; font-weight: bold; font-style: italic; font-size: 14px;
+      box-shadow: inset 1px 1px 0px #81c784, 2px 0 4px rgba(0,0,0,0.4);
+      display: flex; align-items: center; gap: 6px; cursor: pointer; flex-shrink: 0;
+    }
+
+    #taskbar-windows {
+      display: flex; gap: 3px; align-items: center; flex: 1;
+      height: 100%; padding: 0 6px; overflow-x: auto; overflow-y: hidden;
+    }
+    #taskbar-windows::-webkit-scrollbar { display: none; }
+
+    .taskbar-item {
+      height: 25px; min-width: 90px; max-width: 150px; flex: 1;
+      background: linear-gradient(to bottom, #3c8cf3 0%, #245edb 100%);
+      border: 1px solid #09408f; border-radius: 3px; color: white;
+      font-size: 11px; display: flex; align-items: center; gap: 5px;
+      padding: 0 6px; cursor: pointer; text-shadow: 1px 1px 1px #000;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.3);
+    }
+    .taskbar-item.active {
+      background: linear-gradient(to bottom, #1941a5 0%, #245edb 100%);
+      box-shadow: inset 1px 1px 2px rgba(0,0,0,0.6);
+      border-color: #113075;
+    }
+
+    .tray {
+      height: 100%; background: linear-gradient(to bottom, #0c59b9 0%, #139ee8 15%, #18bdf8 25%, #0f8fe6 75%, #095bc9 90%);
+      border-left: 1px solid #09408f; padding: 0 12px; display: flex; align-items: center;
+      color: white; font-size: 11px; text-shadow: 1px 1px 1px #000; flex-shrink: 0;
+    }
+
+    /* 5. МЕНЮ ПУСК */
+    #start-menu {
+      position: absolute; bottom: 32px; left: 0; width: 260px;
+      background: white; border: 1px solid #0055ea; border-radius: 5px 5px 0 0;
+      box-shadow: 2px -2px 10px rgba(0,0,0,0.5); display: none; z-index: 1001;
+      overflow: hidden;
+    }
+    .start-header {
+      background: linear-gradient(to bottom, #1f5edb, #3b88f5);
+      color: white; padding: 10px; font-weight: bold; display: flex; align-items: center; gap: 10px;
+    }
+    .start-body { display: flex; background: #fff; min-height: 220px; }
+    .start-items { width: 100%; background: #d3e5fa; padding: 6px; font-size: 12px; }
+    .start-item { padding: 6px 8px; cursor: pointer; display: flex; align-items: center; gap: 8px; border-radius: 3px; }
+    .start-item:hover { background: #316ac5; color: white; }
+    .start-item.locked { color: #777; }
+    .start-footer {
+      background: linear-gradient(to bottom, #4282f4, #1952c4);
+      padding: 6px 12px; display: flex; justify-content: flex-end; gap: 8px;
+    }
+
+    /* 6. АУТЕНТИЧНЫЕ ОКНА С ПОЛНОЙ НЕПРОЗРАЧНОСТЬЮ */
+    .os-window {
+      position: absolute; display: none; z-index: 500;
+      top: 30px; left: 20px; width: 90vw; max-width: 580px; min-width: 260px; min-height: 160px;
+      background: #ece9d8 !important; /* 100% НЕПРОЗРАЧНОСТЬ */
+      border: 3px solid #0055ea;
+      border-top-left-radius: 8px; border-top-right-radius: 8px;
+      box-shadow: 3px 5px 15px rgba(0,0,0,0.5);
+      resize: both; overflow: hidden;
+    }
+    .os-window.maximized {
+      top: 0 !important; left: 0 !important; width: 100vw !important; height: calc(100vh - 32px) !important;
+      max-width: none !important; resize: none !important; border-radius: 0;
+    }
+
+    /* ШАПКА ОКНА */
+    .title-bar {
+      height: 28px;
+      background: linear-gradient(to bottom, #0058ee 0%, #3593ff 4%, #288eff 6%, #0061e8 8%, #0055ea 10%, #004bd6 14%, #0036a7 100%);
+      padding: 0 6px 0 10px; display: flex; justify-content: space-between; align-items: center;
+      color: white; font-weight: bold; font-size: 12px; text-shadow: 1px 1px 1px #001f66;
+      cursor: move;
+    }
+    .title-bar-text { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .title-bar-controls { display: flex; gap: 3px; }
+    .win-btn {
+      width: 21px; height: 21px; border: 1px solid #fff; border-radius: 3px;
+      font-weight: bold; font-size: 11px; cursor: pointer; color: white;
+      display: flex; align-items: center; justify-content: center; outline: none;
+      box-shadow: inset 1px 1px 0 rgba(255,255,255,0.4);
+    }
+    .win-btn.min { background: linear-gradient(#3c8df5, #1856c8); }
+    .win-btn.max { background: linear-gradient(#3c8df5, #1856c8); }
+    .win-btn.close { background: linear-gradient(#e0593b, #c42907); }
+    .win-btn:active { box-shadow: inset 1px 1px 2px #000; }
+
+    .window-body {
+      background: #ece9d8; height: calc(100% - 28px);
+      overflow-y: auto; display: flex; flex-direction: column;
+    }
+
+    /* ДИАЛОГОВЫЕ ОКНА */
+    .msg-dialog {
+      resize: none !important; max-width: 400px !important; min-height: auto !important;
+    }
+
+    /* ТУЛБАР И АДРЕСНАЯ СТРОКА */
+    .explorer-toolbar {
+      background: #ece9d8; border-bottom: 1px solid #d4d0c8;
+      padding: 4px 6px; display: flex; align-items: center; gap: 8px; font-size: 11px;
+    }
+    .explorer-address {
+      background: #ece9d8; border-bottom: 1px solid #999;
+      padding: 3px 6px; display: flex; align-items: center; gap: 6px; font-size: 11px;
+    }
+    .explorer-address input {
+      flex: 1; border: 1px solid #7f9db9; padding: 2px 4px; font-size: 11px; background: white;
+    }
+
+    .explorer-grid {
+      display: flex; flex-wrap: wrap; gap: 14px; padding: 14px;
+      min-height: 160px; background: white; align-content: flex-start; flex: 1;
+      border: 1px solid #7f9db9; margin: 4px;
+    }
+    .file-item {
+      width: 78px; text-align: center; font-size: 11px; cursor: pointer;
+      padding: 4px; border-radius: 2px;
+    }
+    .file-item:hover { background: #e0e8f8; outline: 1px solid #7f9db9; }
+    .file-icon { font-size: 30px; display: block; margin-bottom: 4px; }
+
+    /* WARD */
+    .ward-menu {
+      background: #ece9d8; border-bottom: 1px solid #d4d0c8; padding: 2px 6px;
+      display: flex; gap: 10px; font-size: 11px;
+    }
+    .ward-toolbar {
+      background: #ece9d8; border-bottom: 1px solid #999; padding: 3px 6px;
+      display: flex; gap: 8px; font-size: 11px; align-items: center;
+    }
+    .ward-sheet {
+      background: white; border: 1px solid #7f9db9; padding: 20px 26px;
+      height: 100%; overflow-y: auto; font-family: 'Times New Roman', serif;
+      font-size: 13px; line-height: 1.5; color: #111; margin: 6px;
+    }
+
+    /* АЛЬБОМ */
+    .photo-card { width: 105px; text-align: center; font-size: 10px; cursor: pointer; padding: 4px; }
+    .photo-card:hover { background: #e0e8f8; outline: 1px solid #7f9db9; }
+    .photo-thumb {
+      width: 95px; height: 70px; background: #111; display: flex;
+      align-items: center; justify-content: center; font-size: 26px;
+      border: 1px solid #777; margin: 0 auto 4px auto; border-radius: 2px;
+    }
+
+    /* КНОПКИ В СТИЛЕ XP */
+    button.xp-button {
+      background: linear-gradient(to bottom, #fff 0%, #ece9d8 50%, #dcd7c9 100%);
+      border: 1px solid #003c74; border-radius: 3px; padding: 3px 12px;
+      font-size: 11px; cursor: pointer; min-width: 60px;
+    }
+    button.xp-button:hover { box-shadow: 0 0 3px #f5a03b; }
+    button.xp-button:active { background: #dcd7c9; }
+  </style>
+</head>
+<body>
+
+  <!-- СКРЫТЫЙ ГОЛУБОЙ КВАДРАТ ПРОПУСКА -->
+  <div id="skip-btn" title="Скрытый пропуск ожидания" onclick="triggerSkip()"></div>
+
+  <!-- 1. ЭКРАН BIOS -->
+  <div id="bios-screen">
+    <div class="bios-header">
+      <div>
+        <div>ASUS ACPI BIOS Revision 1011</div>
+        <div>CPU: Intel(R) Core(TM)2 Duo CPU E8400 @ 3.00GHz</div>
+        <div style="margin-top: 8px;">Checking NVRAM..</div>
+        <div id="ram-counter">Memory Testing: 0KB OK</div>
+        <div style="margin-top: 8px;">Primary Master: WDC WD5000AAKS-00YGA0</div>
+        <div>Primary Slave: ATAPI DVD A DH20A4P</div>
+
+        <div id="bios-progress-container" style="margin-top: 20px;">
+          <div>System Initializing... <span id="bios-percent">0%</span></div>
+          <div id="bios-progress-bar" style="font-family: monospace; color: #fff; letter-spacing: 2px; margin-top: 4px;">
+            [........................................]
+          </div>
+        </div>
+      </div>
+
+      <div class="energy-logo">
+      ENERGY STAR
+       /#####\
+      |#######|
+       \#####/
+      </div>
+    </div>
+    
+    <div style="font-size: 12px; color: #888;">
+      Press <span style="color:#fff">DEL</span> to enter SETUP, <span style="color:#fff">F8</span> for BBS POPUP<br>
+      09/12/2009-P35-ICH9-6A79O000C-00
+    </div>
+  </div>
+
+  <!-- 2. ЭКРАН ЗАГРУЗКИ OKNA -->
+  <div id="bootscreen">
+    <div class="okna-logo">Macrosoft<br><span>Okna</span><sup style="font-size: 12px; color:#ff4500;">XP</sup></div>
+    <div class="boot-loader">
+      <div class="boot-bars"></div>
+    </div>
+  </div>
+
+  <!-- 3. РАБОЧИЙ СТОЛ -->
+  <div id="desktop">
+    <div class="desktop-icons">
+      <div class="icon" ondblclick="openExplorerWindow('window-mycomp', 'Мой компьютер')" onclick="mobileTap('window-mycomp', 'Мой компьютер')">
+        <span class="icon-img">💻</span>
+        Мой компьютер
+      </div>
+      <div class="icon" ondblclick="openExplorerWindow('window-trash', 'Корзина')" onclick="mobileTap('window-trash', 'Корзина')">
+        <span class="icon-img">🗑️</span>
+        Корзина
+      </div>
+      <div class="icon" ondblclick="openExplorerWindow('window-sysconf', 'Сектор_SYS')" onclick="mobileTap('window-sysconf', 'Сектор_SYS')">
+        <span class="icon-img">🗃️</span>
+        Сектор_SYS
+      </div>
+    </div>
+
+    <!-- ОКНО: МОЙ КОМПЬЮТЕР -->
+    <div class="os-window" id="window-mycomp" data-title="Мой компьютер" onclick="focusWindow('window-mycomp')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-mycomp')">
+        <div class="title-bar-text">Мой компьютер</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-mycomp')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-mycomp')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-mycomp')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-toolbar">
+          <span>⬅️ Назад</span>
+          <span>➡️ Вперед</span>
+          <span>📁 Вверх</span>
+          <span>|</span>
+          <span>🔍 Поиск</span>
+        </div>
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="Мой компьютер" readonly>
+        </div>
+        <div class="explorer-grid">
+          <div class="file-item" ondblclick="openExplorerWindow('window-drive-c', 'Локальный диск (C:)')" onclick="mobileTapGeneric(() => openExplorerWindow('window-drive-c', 'Локальный диск (C:)'))">
+            <span class="file-icon">🔒💽</span>
+            Диск (C:)
+          </div>
+          <div class="file-item" ondblclick="openDriveD()" onclick="mobileTapDriveD()">
+            <span class="file-icon">💽</span>
+            Диск (D:)
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: ДИСК C (ЗАБЛОКИРОВАН) -->
+    <div class="os-window" id="window-drive-c" data-title="Локальный диск (C:)" onclick="focusWindow('window-drive-c')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-drive-c')">
+        <div class="title-bar-text">Локальный диск (C:)</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-drive-c')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-drive-c')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-drive-c')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="C:\" readonly>
+        </div>
+        <div style="text-align: center; padding: 30px; color: #555; font-size: 11px;">
+          <span style="font-size: 34px; display: block; margin-bottom: 8px;">🔒</span>
+          Раздел заблокирован системным администратором.<br>Доступ к загрузочному сектору ограничен политикой безопасности.
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: ДИСК D -->
+    <div class="os-window" id="window-drive-d" data-title="Локальный диск (D:)" onclick="focusWindow('window-drive-d')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-drive-d')">
+        <div class="title-bar-text">Локальный диск (D:)</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-drive-d')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-drive-d')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-drive-d')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="D:\" readonly>
+        </div>
+        <div class="explorer-grid">
+          <div class="file-item" ondblclick="interactGpx()" onclick="mobileTapGeneric(() => interactGpx())">
+            <span class="file-icon">📍</span>
+            KVADRAT_8L.gpx
+          </div>
+          <div class="file-item" ondblclick="openOrderFile()" onclick="mobileTapGeneric(() => openOrderFile())">
+            <span class="file-icon">📄</span>
+            ORDER.txt
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: КОРЗИНА -->
+    <div class="os-window" id="window-trash" data-title="Корзина" onclick="focusWindow('window-trash')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-trash')">
+        <div class="title-bar-text">Корзина</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-trash')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-trash')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-trash')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="Корзина" readonly>
+        </div>
+        <p style="font-size: 11px; color: #555; text-align: center; padding: 24px;">Корзина пуста.</p>
+      </div>
+    </div>
+
+    <!-- ОКНО: МОИ ДОКУМЕНТЫ -->
+    <div class="os-window" id="window-docs" data-title="Мои Документы" onclick="focusWindow('window-docs')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-docs')">
+        <div class="title-bar-text">Мои Документы</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-docs')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-docs')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-docs')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="C:\Documents and Settings\Administrator\Мои документы" readonly>
+        </div>
+        <div class="explorer-grid">
+          <div class="file-item" ondblclick="openApp('window-ward', 'Macrosoft Ward')" onclick="mobileTapGeneric(() => openApp('window-ward', 'Macrosoft Ward'))">
+            <span class="file-icon">📝</span>
+            Радиационный фон.doc
+          </div>
+          <div class="file-item" ondblclick="openExplorerWindow('window-notouch', 'не трогать!!!')" onclick="mobileTapGeneric(() => openExplorerWindow('window-notouch', 'не трогать!!!'))">
+            <span class="file-icon">📁</span>
+            не трогать!!!
+          </div>
+          <div class="file-item" ondblclick="openDutyJournal()" onclick="mobileTapGeneric(() => openDutyJournal())">
+            <span class="file-icon">📜</span>
+            Журнал_дежурства_08.log
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: СЕКТОР_SYS -->
+    <div class="os-window" id="window-sysconf" data-title="Сектор_SYS" onclick="focusWindow('window-sysconf')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-sysconf')">
+        <div class="title-bar-text">Сектор_SYS - Конфигурация антенного поля</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-sysconf')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-sysconf')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-sysconf')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="C:\SYS_CONF\RADAR" readonly>
+        </div>
+        <div class="explorer-grid">
+          <div class="file-item" ondblclick="openViewerText('FREQ_MAP.cfg', '[CH_01] = 142.800 MHz (Активен)\n[CH_02] = 433.075 MHz (Подавлен)\n[BEACON_PULSE] = 18 sec\n[CIPHER] = GOST-28147-89\n[STATUS] = РЕТРАНСЛЯЦИЯ В РЕЖИМЕ ПАНИКИ')" onclick="mobileTapGeneric(() => openViewerText('FREQ_MAP.cfg', '[CH_01] = 142.800 MHz (Активен)\n[CH_02] = 433.075 MHz (Подавлен)\n[BEACON_PULSE] = 18 sec\n[CIPHER] = GOST-28147-89\n[STATUS] = РЕТРАНСЛЯЦИЯ В РЕЖИМЕ ПАНИКИ'))">
+            <span class="file-icon">⚙️</span>
+            FREQ_MAP.cfg
+          </div>
+          <div class="file-item" ondblclick="openViewerText('калибровка_дозиметров.txt', 'Датчики ДП-5В откалиброваны с погрешностью +18%.\nВ секторе Новоселок реальные значения превышают порог шкалы.\nРаботать только по звуковому треску щелчков.')" onclick="mobileTapGeneric(() => openViewerText('калибровка_дозиметров.txt', 'Датчики ДП-5В откалиброваны с погрешностью +18%.\nВ секторе Новоселок реальные значения превышают порог шкалы.\nРаботать только по звуковому треску щелчков.'))">
+            <span class="file-icon">📄</span>
+            калибровка_дозиметров.txt
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: АЛЬБОМ -->
+    <div class="os-window" id="window-album" data-title="Альбом" onclick="focusWindow('window-album')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-album')">
+        <div class="title-bar-text">Альбом - Фотопленка Сектора</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-album')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-album')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-album')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="C:\Documents and Settings\Administrator\Альбом" readonly>
+        </div>
+        <div class="explorer-grid">
+          <div class="photo-card" onclick="openPhoto('Вышка_север.raw', '📷 Опорная радиовышка №4 (северный рубеж). Зафиксированы помехи в ультракоротком диапазоне.')">
+            <div class="photo-thumb">🗼</div>
+            Вышка_север.raw
+          </div>
+          <div class="photo-card" onclick="openPhoto('КПП_заброшен.jpg', '📷 Заброшенный контрольно-пропускной пункт. Шлагбаум деформирован, на стеклах бурый налет.')">
+            <div class="photo-thumb">🚧</div>
+            КПП_заброшен.jpg
+          </div>
+          <div class="photo-card" onclick="openPhoto('Периметр_ночь.png', '📷 Внешний периметр, съемка с ПНВ. Следы тяжелой гусеничной техники уходят в низину.')">
+            <div class="photo-thumb">🌌</div>
+            Периметр_ночь.png
+          </div>
+          <div class="photo-card" onclick="openPhoto('Склад_Новоселки.raw', '📷 Окрестности Новоселок. Заколоченные амбары. В траве замечены брошенные респираторы.')">
+            <div class="photo-thumb">🏚️</div>
+            Склад_Новоселки.raw
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: НЕ ТРОГАТЬ!!! -->
+    <div class="os-window" id="window-notouch" data-title="не трогать!!!" onclick="focusWindow('window-notouch')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-notouch')">
+        <div class="title-bar-text">ВНИМАНИЕ: не трогать!!!</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-notouch')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-notouch')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-notouch')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="explorer-address">
+          <span>Адрес:</span>
+          <input type="text" value="C:\Documents and Settings\Administrator\Мои документы\не трогать!!!" readonly>
+        </div>
+        <div class="explorer-grid">
+          <div class="file-item" ondblclick="openViewerText('АВАРИЙНЫЙ_ПРОТОКОЛ_04.txt', 'В СЛУЧАЕ НАРУШЕНИЯ ГЕРМЕТИЧНОСТИ ШЛЮЗА:\n\n1. Немедленно обесточить нижний контур подстанции.\n2. Перевести фильтрационные установки в автономный режим продувки.\n3. Сжечь журнал дежурной смены.\n4. Выход наружу до прибытия эвакуационной группы КАТЕГОРИЧЕСКИ ВОСПРЕЩЕН.')" onclick="mobileTapGeneric(() => openViewerText('АВАРИЙНЫЙ_ПРОТОКОЛ_04.txt', 'В СЛУЧАЕ НАРУШЕНИЯ ГЕРМЕТИЧНОСТИ ШЛЮЗА:\n\n1. Немедленно обесточить нижний контур подстанции.\n2. Перевести фильтрационные установки в автономный режим продувки.\n3. Сжечь журнал дежурной смены.\n4. Выход наружу до прибытия эвакуационной группы КАТЕГОРИЧЕСКИ ВОСПРЕЩЕН.'))">
+            <span class="file-icon">📜</span>
+            АВАРИЙНЫЙ_ПРОТОКОЛ_04.txt
+          </div>
+          <div class="file-item" ondblclick="openViewerText('ключи_доступа_old.bak', '0x88F1: [ОШИБКА ДЕШИФРОВАНИЯ]\nСекторная сигнатура не совпадает.\nКлючи отозваны оператором 14-08-2009.')" onclick="mobileTapGeneric(() => openViewerText('ключи_доступа_old.bak', '0x88F1: [ОШИБКА ДЕШИФРОВАНИЯ]\nСекторная сигнатура не совпадает.\nКлючи отозваны оператором 14-08-2009.'))">
+            <span class="file-icon">🔑</span>
+            ключи_доступа_old.bak
+          </div>
+          <div class="file-item" onclick="showOsDialog('self_destruct.bat', 'КРИТИЧЕСКАЯ ОШИБКА: Исполняемый файл поврежден. Не запускать self_destruct.bat!', 'error')">
+            <span class="file-icon">⚙️</span>
+            self_destruct.bat
+          </div>
+          <div class="file-item" onclick="showOsDialog('KERNEL_WATCHDOG', 'Файл 00_NE_OTKRYVAT.tmp заблокирован процессом KERNEL_WATCHDOG.EXE', 'error')">
+            <span class="file-icon">🔒</span>
+            00_NE_OTKRYVAT.tmp
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: WARD -->
+    <div class="os-window" id="window-ward" data-title="Ward - Радиационный фон" onclick="focusWindow('window-ward')" style="max-width: 580px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-ward')">
+        <div class="title-bar-text">Macrosoft Ward - [Радиационный фон.doc]</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-ward')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-ward')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-ward')">✕</button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div class="ward-menu">
+          <span><u>Ф</u>айл</span>
+          <span><u>П</u>равка</span>
+          <span><u>В</u>ид</span>
+          <span><u>В</u>ставка</span>
+          <span>Ф<u>о</u>рмат</span>
+          <span><u>С</u>ервис</span>
+        </div>
+        <div class="ward-toolbar">
+          <select style="font-size: 11px;"><option>Times New Roman</option></select>
+          <select style="font-size: 11px;"><option>12</option></select>
+          <b>Ж</b> <i>К</i> <u>Ч</u> | 📄 💾 🖨️
+        </div>
+        <div class="ward-sheet">
+          <div style="text-align: center; font-weight: bold; margin-bottom: 14px; font-size: 14px;">
+            ПОЛЕВОЙ ОТЧЕТ: ДИНАМИКА ФОНОВЫХ ПОКАЗАТЕЛЕЙ<br>
+            <span style="font-size: 11px; font-weight: normal; color: #555;">[Черновой фрагмент наблюдения / Без грифа]</span>
+          </div>
+
+          <p style="margin-bottom: 12px; text-indent: 20px;">
+            Первичные замеры в контрольных точках сектора выявили резкие скачкообразные отклонения. Фоновые значения нестабильны: в низинах и возле водоотводных каналов условная единица колеблется в пределах <b>150–190</b>, однако при приближении к грунтовым разломам и бетонным конструкциям датчики уверенно фиксируют рост до <b>280–300 условных единиц</b>.
+          </p>
+
+          <p style="margin-bottom: 12px; text-indent: 20px;">
+            В воздухе фиксируется взвесь тяжелых мелкодисперсных частиц с высокой ионизацией. Штатные армейские фильтры марки «ГП» приходят в негодность уже через 40–50 минут активного перемещения: сорбент спекается, провоцируя токсическое раздражение верхних дыхательных путей и металлический привкус во рту.
+          </p>
+
+          <p style="margin-bottom: 12px; text-indent: 20px;">
+            <b>Требуется срочная замена снаряжения:</b> выход в указанный периметр возможен исключительно с применением усовершенствованных противогазов изолирующего типа либо комбинированных масок с двойными керамическими предфильтрами и принудительной подачей смеси. В противном случае поражение легочной ткани наступает даже при кратковременном контакте.
+          </p>
+
+          <p style="color: #666; font-style: italic; border-top: 1px dashed #aaa; padding-top: 8px; margin-top: 15px;">
+            [Запись обрывается. Таблицы калибровки датчиков не прикреплены. Подпись отсутствует.]
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: ПРОСМОТР ТЕКСТА -->
+    <div class="os-window" id="window-viewer" data-title="Блокнот" onclick="focusWindow('window-viewer')" style="max-width: 480px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-viewer')">
+        <div class="title-bar-text" id="viewer-title">Блокнот</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-viewer')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-viewer')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-viewer')">✕</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 6px;">
+        <pre id="viewer-content" style="font-family: monospace; font-size: 11px; white-space: pre-wrap; background: #fff; padding: 12px; border: 1px solid #7f9db9; height: 100%; overflow-y: auto; line-height: 1.4; color: #111;"></pre>
+      </div>
+    </div>
+
+    <!-- ДИАЛОГОВЫЕ ОКНА -->
+    <div class="os-window msg-dialog" id="window-sys-msg" data-title="Сообщение системы" onclick="focusWindow('window-sys-msg')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-sys-msg')">
+        <div class="title-bar-text" id="sys-msg-title">Сообщение системы</div>
+        <div class="title-bar-controls">
+          <button class="win-btn close" onclick="closeApp('window-sys-msg')">✕</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 16px;">
+        <div style="display:flex; gap:12px; align-items: center; margin-bottom: 14px;">
+          <span id="sys-msg-icon" style="font-size: 32px;">ℹ️</span>
+          <div id="sys-msg-text" style="font-size: 11px; line-height: 1.4; color: #111;"></div>
+        </div>
+        <div style="display:flex; justify-content: flex-end;">
+          <button class="xp-button" onclick="closeApp('window-sys-msg')">ОК</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ДИАЛОГ GPX -->
+    <div class="os-window msg-dialog" id="window-gpx-dialog" data-title="Мастер GPX" onclick="focusWindow('window-gpx-dialog')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-gpx-dialog')">
+        <div class="title-bar-text">Мастер экспорта - KVADRAT_8L.gpx</div>
+        <div class="title-bar-controls">
+          <button class="win-btn close" onclick="closeApp('window-gpx-dialog')">✕</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 16px;">
+        <div style="display:flex; gap:12px; align-items: flex-start; margin-bottom: 14px;">
+          <span style="font-size: 32px;">💾</span>
+          <p style="font-size: 11px; line-height: 1.4;">
+            Файл <b>KVADRAT_8L.gpx</b> содержит зашифрованную сетку эвакуации.<br><br>
+            Для считывания подключите внешний защищенный накопитель с файловой системой FAT16.
+          </p>
+        </div>
+        <div style="display:flex; justify-content: flex-end; gap: 8px;">
+          <button class="xp-button" onclick="closeApp('window-gpx-dialog')">Назад</button>
+          <button class="xp-button" onclick="startGpxTransfer()">Накопитель готов</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- GPX ПРОГРЕСС -->
+    <div class="os-window msg-dialog" id="window-gpx-progress" data-title="Экспорт GPX" onclick="focusWindow('window-gpx-progress')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-gpx-progress')">
+        <div class="title-bar-text">Перекачка защищенных данных...</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-gpx-progress')">_</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 16px;">
+        <p style="font-size: 11px; margin-bottom: 8px;">Экспорт координат на съемный диск...</p>
+        <div style="background: #e2e2e2; border: 1px solid #777; height: 18px; position: relative; border-radius: 2px;">
+          <div id="gpx-fill" style="background: #16a34a; width: 0%; height: 100%; transition: width 0.4s;"></div>
+        </div>
+        <p id="gpx-text" style="font-size: 10px; color: #444; margin-top: 6px; text-align: right;">Осталось: 3 мин. 00 сек.</p>
+      </div>
+    </div>
+
+    <!-- ДИАЛОГ ОБНОВЛЕНИЯ ДИСКА D -->
+    <div class="os-window msg-dialog" id="window-update-dialog" data-title="Обновление Okna" onclick="focusWindow('window-update-dialog')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-update-dialog')">
+        <div class="title-bar-text">Обновление компонентов Okna</div>
+        <div class="title-bar-controls">
+          <button class="win-btn close" onclick="closeApp('window-update-dialog')">✕</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 16px;">
+        <div style="display:flex; gap:10px; align-items: center; margin-bottom: 12px;">
+          <span style="font-size: 32px;">⚠️</span>
+          <p style="font-size: 12px;">Для доступа к диску (D:) требуется установка пакетов обновления.<br><br><b>Вы готовы установить обновление сейчас?</b></p>
+        </div>
+        <div style="display:flex; justify-content: flex-end; gap: 8px;">
+          <button class="xp-button" onclick="startUpdating()">Да</button>
+          <button class="xp-button" onclick="closeApp('window-update-dialog')">Нет</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ЗАГРУЗКА ОБНОВЛЕНИЙ -->
+    <div class="os-window msg-dialog" id="window-progress" data-title="Установка обновлений" onclick="focusWindow('window-progress')">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-progress')">
+        <div class="title-bar-text">Загрузка обновлений безопасности...</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-progress')">_</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 16px;">
+        <p style="font-size: 11px; margin-bottom: 8px;">Идет установка пакетов... Пожалуйста, подождите.</p>
+        <div style="background: #e2e2e2; border: 1px solid #777; height: 18px; position: relative; border-radius: 2px;">
+          <div id="progress-fill" style="background: #3c81f3; width: 0%; height: 100%; transition: width 0.5s;"></div>
+        </div>
+        <p id="progress-text" style="font-size: 10px; color: #444; margin-top: 5px; text-align: right;">Осталось: 15 мин. 00 сек.</p>
+      </div>
+    </div>
+
+    <!-- МЕНЮ ПУСК -->
+    <div id="start-menu">
+      <div class="start-header">
+        <span style="font-size:24px;">👤</span> Administrator
+      </div>
+      <div class="start-body">
+        <div class="start-items">
+          <div class="start-item" onclick="openExplorerWindow('window-mycomp', 'Мой компьютер'); toggleStart();">💻 <b>Мой компьютер</b></div>
+          <div class="start-item" onclick="openExplorerWindow('window-album', 'Альбом'); toggleStart();">🖼️ Альбом</div>
+          <div class="start-item locked" onclick="showOsDialog('Ограничение доступа', 'Папка зашифрована и закрыта администратором.', 'error'); toggleStart();">🔒 Работа</div>
+          <div class="start-item" onclick="openExplorerWindow('window-docs', 'Мои Документы'); toggleStart();">📁 <b>Мои Документы</b></div>
+          <div class="start-item" onclick="openExplorerWindow('window-sysconf', 'Сектор_SYS'); toggleStart();">🗃️ Сектор_SYS</div>
+        </div>
+      </div>
+      <div class="start-footer">
+        <button class="xp-button" onclick="restartOS()">Перезагрузка</button>
+        <button class="xp-button" onclick="restartOS()">Выключение</button>
+      </div>
+    </div>
+
+    <!-- ПАНЕЛЬ ЗАДАЧ -->
+    <div id="taskbar">
+      <button id="start-btn" onclick="toggleStart()">
+        <span style="font-size:15px;">⊞</span> пуск
+      </button>
+      <div id="taskbar-windows"></div>
+      <div class="tray">
+        <span id="clock-display">12:00</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /* АУДИОСИСТЕМА */
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+    function playSound(type) {
+      if (audioCtx.state === 'suspended') audioCtx.resume();
+      const now = audioCtx.currentTime;
+
+      if (type === 'startup') {
+        const notes = [155.56, 233.08, 311.13, 466.16, 622.25];
+        notes.forEach((freq, index) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0, now + index * 0.1);
+          gain.gain.linearRampToValueAtTime(0.12, now + index * 0.1 + 0.1);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + index * 0.1);
+          osc.stop(now + 3.8);
+        });
+      } else if (type === 'error') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sawtooth';
+        osc.frequency.setValueAtTime(140, now);
+        osc.frequency.linearRampToValueAtTime(100, now + 0.25);
+        gain.gain.setValueAtTime(0.2, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.3);
+      } else if (type === 'notify') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(587.33, now);
+        osc.frequency.setValueAtTime(880, now + 0.15);
+        gain.gain.setValueAtTime(0.15, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.5);
+      }
+    }
+
+    /* ТАЙМЕРЫ И ПЕРЕМЕННЫЕ */
+    const BIOS_TIME = 120000;
+    const BOOT_TIME = 120000;
+    const UPDATE_TIME_SEC = 15 * 60;
+    const GPX_TRANSFER_SEC = 3 * 60;
+
+    let isDriveDUnlocked = false;
+    let tapTimeout = null;
+    let biosInterval = null;
+    let bootTimeout = null;
+    let updateInterval = null;
+    let gpxInterval = null;
+    let currentActiveStage = 'bios';
+
+    let highestZ = 500;
+    const openWindowsMap = new Map();
+
+    /* ПЕРЕТАСКИВАНИЕ ОКОН НА ПК */
+    let draggedElement = null;
+    let dragOffsetX = 0;
+    let dragOffsetY = 0;
+
+    function startDrag(e, id) {
+      if (e.target.tagName.toLowerCase() === 'button') return;
+      const win = document.getElementById(id);
+      if (!win || win.classList.contains('maximized')) return;
+      focusWindow(id);
+      draggedElement = win;
+      dragOffsetX = e.clientX - win.offsetLeft;
+      dragOffsetY = e.clientY - win.offsetTop;
+      document.addEventListener('mousemove', onDragMove);
+      document.addEventListener('mouseup', stopDrag);
+    }
+
+    function onDragMove(e) {
+      if (!draggedElement) return;
+      draggedElement.style.left = Math.max(0, e.clientX - dragOffsetX) + 'px';
+      draggedElement.style.top = Math.max(0, e.clientY - dragOffsetY) + 'px';
+    }
+
+    function stopDrag() {
+      draggedElement = null;
+      document.removeEventListener('mousemove', onDragMove);
+      document.removeEventListener('mouseup', stopDrag);
+    }
+
+    /* ТЕКСТ ORDER.TXT */
+    const ORDER_FILE_TEXT = 
+`СОВЕРШЕННО СЕКРЕТНО.
+Служба Безопасности Периметра.
+Старшему группы (позывной «Север»).
+Состав группы: 2 человека («Север», «Угрюмый»).
+Срок выполнения: до 3 суток автономного поиска.
+Район высадки: окрестности г. Новоселки.
+Точка эвакуации: KVADRAT_8L.gpx
+Основание: Агентурная наводка о возможном обнаружении майора Ковальчука. Род деятельности и текущее состояние неизвестны.
+Задача: Провести скрытный поиск и визуальную идентификацию. В боестолкновения не вступать, захват не производить. По завершении идентификации передать координаты и запросить эвакуации. В случае форс мажорных обстоятельств, в точке эвакуации есть дополнительное снаряжение.`;
+
+    /* ИНИЦИАЛИЗАЦИЯ И СИСТЕМНЫЙ ЗАПУСК */
+    function runSystemBoot() {
+      currentActiveStage = 'bios';
+      document.getElementById('desktop').style.display = 'none';
+      document.getElementById('bootscreen').style.display = 'none';
+      const bios = document.getElementById('bios-screen');
+      bios.style.display = 'flex';
+
+      const ramElem = document.getElementById('ram-counter');
+      const percentElem = document.getElementById('bios-percent');
+      const barElem = document.getElementById('bios-progress-bar');
+
+      const TOTAL_BLOCKS = 40;
+      const TOTAL_RAM = 4194304;
+      const startTime = Date.now();
+
+      percentElem.innerText = '0%';
+      barElem.innerText = '[' + '.'.repeat(TOTAL_BLOCKS) + ']';
+      ramElem.innerText = 'Memory Testing: 0KB OK';
+
+      if (biosInterval) clearInterval(biosInterval);
+
+      biosInterval = setInterval(() => {
+        const elapsed = Date.now() - startTime;
+        let progress = elapsed / BIOS_TIME;
+
+        if (progress > 1) progress = 1;
+
+        const currentPercent = Math.floor(progress * 100);
+        percentElem.innerText = `${currentPercent}%`;
+
+        const filledBlocks = Math.floor(progress * TOTAL_BLOCKS);
+        const emptyBlocks = TOTAL_BLOCKS - filledBlocks;
+        barElem.innerText = '[' + '■'.repeat(filledBlocks) + '.'.repeat(emptyBlocks) + ']';
+
+        const currentRam = Math.floor(progress * TOTAL_RAM);
+        ramElem.innerText = `Memory Testing: ${currentRam}KB OK`;
+
+        if (progress >= 1) {
+          finishBiosStage();
+        }
+      }, 100);
+    }
+
+    function finishBiosStage() {
+      clearInterval(biosInterval);
+      currentActiveStage = 'boot';
+      document.getElementById('bios-screen').style.display = 'none';
+      const bootscreen = document.getElementById('bootscreen');
+      bootscreen.style.display = 'flex';
+
+      bootTimeout = setTimeout(() => {
+        finishBootStage();
+      }, BOOT_TIME);
+    }
+
+    function finishBootStage() {
+      if (bootTimeout) clearTimeout(bootTimeout);
+      currentActiveStage = 'idle';
+      document.getElementById('bootscreen').style.display = 'none';
+      document.getElementById('desktop').style.display = 'block';
+      playSound('startup');
+    }
+
+    function restartOS() {
+      toggleStart();
+      closeAllApps();
+      if (updateInterval) clearInterval(updateInterval);
+      if (gpxInterval) clearInterval(gpxInterval);
+      isDriveDUnlocked = false;
+      runSystemBoot();
+    }
+
+    /* СКРЫТАЯ КНОПКА ПРОПУСКА */
+    function triggerSkip() {
+      if (currentActiveStage === 'bios') {
+        finishBiosStage();
+      } else if (currentActiveStage === 'boot') {
+        finishBootStage();
+      } else if (currentActiveStage === 'update') {
+        if (updateInterval) clearInterval(updateInterval);
+        closeApp('window-progress');
+        playSound('notify');
+        isDriveDUnlocked = true;
+        openExplorerWindow('window-drive-d', 'Локальный диск (D:)');
+        currentActiveStage = 'idle';
+      } else if (currentActiveStage === 'gpx') {
+        if (gpxInterval) clearInterval(gpxInterval);
+        closeApp('window-gpx-progress');
+        playSound('notify');
+        currentActiveStage = 'idle';
+        showOsDialog('Уведомление', 'Готово', 'info');
+      }
+    }
+
+    /* ДИАЛОГИ ВНУТРИ ОС */
+    function showOsDialog(title, message, type = 'info') {
+      const titleElem = document.getElementById('sys-msg-title');
+      const textElem = document.getElementById('sys-msg-text');
+      const iconElem = document.getElementById('sys-msg-icon');
+
+      titleElem.innerText = title;
+      textElem.innerText = message;
+
+      if (type === 'error') {
+        iconElem.innerText = '❌';
+        playSound('error');
+      } else if (type === 'warning') {
+        iconElem.innerText = '⚠️';
+        playSound('error');
+      } else {
+        iconElem.innerText = 'ℹ️';
+      }
+
+      openApp('window-sys-msg', title);
+    }
+
+    /* УПРАВЛЕНИЕ ОКНАМИ */
+    function renderTaskbar() {
+      const bar = document.getElementById('taskbar-windows');
+      bar.innerHTML = '';
+      openWindowsMap.forEach((info, id) => {
+        const item = document.createElement('div');
+        item.className = 'taskbar-item' + (!info.minimized ? ' active' : '');
+        item.innerText = info.title;
+        item.onclick = () => toggleWindowFromTaskbar(id);
+        bar.appendChild(item);
+      });
+    }
+
+    function focusWindow(id) {
+      const win = document.getElementById(id);
+      if (!win) return;
+      highestZ++;
+      win.style.zIndex = highestZ;
+      if (openWindowsMap.has(id)) {
+        openWindowsMap.get(id).minimized = false;
+        renderTaskbar();
+      }
+    }
+
+    function openApp(id, customTitle) {
+      const win = document.getElementById(id);
+      if (!win) return;
+      win.style.display = 'block';
+      focusWindow(id);
+
+      const title = customTitle || win.getAttribute('data-title') || 'Окно';
+      openWindowsMap.set(id, { title: title, minimized: false });
+      renderTaskbar();
+    }
+
+    function closeApp(id) {
+      const win = document.getElementById(id);
+      if (win) {
+        win.style.display = 'none';
+        win.classList.remove('maximized');
+      }
+      openWindowsMap.delete(id);
+      renderTaskbar();
+    }
+
+    function minimizeApp(id) {
+      const win = document.getElementById(id);
+      if (!win) return;
+      win.style.display = 'none';
+      if (openWindowsMap.has(id)) {
+        openWindowsMap.get(id).minimized = true;
+      }
+      renderTaskbar();
+    }
+
+    function maximizeApp(id) {
+      const win = document.getElementById(id);
+      if (!win) return;
+      win.classList.toggle('maximized');
+      focusWindow(id);
+    }
+
+    function toggleWindowFromTaskbar(id) {
+      const win = document.getElementById(id);
+      const info = openWindowsMap.get(id);
+      if (!win || !info) return;
+
+      if (info.minimized) {
+        win.style.display = 'block';
+        info.minimized = false;
+        focusWindow(id);
+      } else {
+        if (parseInt(win.style.zIndex || 0) === highestZ) {
+          minimizeApp(id);
+        } else {
+          focusWindow(id);
+        }
+      }
+      renderTaskbar();
+    }
+
+    function closeAllApps() {
+      document.querySelectorAll('.os-window').forEach(win => {
+        win.style.display = 'none';
+        win.classList.remove('maximized');
+      });
+      openWindowsMap.clear();
+      renderTaskbar();
+    }
+
+    function openExplorerWindow(id, title) {
+      openApp(id, title);
+    }
+
+    function openPhoto(name, desc) {
+      document.getElementById('viewer-title').innerText = `Просмотр - ${name}`;
+      document.getElementById('viewer-content').innerText = desc;
+      openApp('window-viewer', name);
+    }
+
+    function openViewerText(title, text) {
+      document.getElementById('viewer-title').innerText = title;
+      document.getElementById('viewer-content').innerText = text;
+      openApp('window-viewer', title);
+    }
+
+    function openOrderFile() {
+      openViewerText('Блокнот - ORDER.txt', ORDER_FILE_TEXT);
+    }
+
+    function openDutyJournal() {
+      const journalText = 
+`02:14 - Просадка напряжения на 3-й подстанции.
+03:40 - Помехи на длинных волнах. С востока слышен гул.
+05:12 - Сигнал поискового маяка пропал с контрольной сетки.
+06:00 - Смена закончена. Никто не пришел.`;
+      openViewerText('Журнал_дежурства_08.log', journalText);
+    }
+
+    function toggleStart() {
+      const menu = document.getElementById('start-menu');
+      menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
+    }
+
+    /* ОБРАБОТЧИКИ ДЛЯ СМАРТФОНОВ И ПК */
+    function mobileTap(windowId, title) {
+      if (!tapTimeout) {
+        tapTimeout = setTimeout(() => { tapTimeout = null; }, 300);
+      } else {
+        clearTimeout(tapTimeout);
+        tapTimeout = null;
+        openExplorerWindow(windowId, title);
+      }
+    }
+
+    function mobileTapDriveD() {
+      if (!tapTimeout) {
+        tapTimeout = setTimeout(() => { tapTimeout = null; }, 300);
+      } else {
+        clearTimeout(tapTimeout);
+        tapTimeout = null;
+        openDriveD();
+      }
+    }
+
+    function mobileTapGeneric(callback) {
+      if (!tapTimeout) {
+        tapTimeout = setTimeout(() => { tapTimeout = null; }, 300);
+      } else {
+        clearTimeout(tapTimeout);
+        tapTimeout = null;
+        callback();
+      }
+    }
+
+    /* ЛОГИКА ДИСКА D И ОБНОВЛЕНИЯ */
+    function openDriveD() {
+      if (isDriveDUnlocked) {
+        openExplorerWindow('window-drive-d', 'Локальный диск (D:)');
+      } else {
+        playSound('error');
+        openApp('window-update-dialog', 'Обновление');
+      }
+    }
+
+    function startUpdating() {
+      closeApp('window-update-dialog');
+      openApp('window-progress', 'Установка пакетов');
+      currentActiveStage = 'update';
+
+      let elapsed = 0;
+      const fill = document.getElementById('progress-fill');
+      const text = document.getElementById('progress-text');
+
+      if (updateInterval) clearInterval(updateInterval);
+
+      updateInterval = setInterval(() => {
+        elapsed++;
+        const percent = (elapsed / UPDATE_TIME_SEC) * 100;
+        fill.style.width = percent + '%';
+
+        const remainingSec = UPDATE_TIME_SEC - elapsed;
+        const min = Math.floor(remainingSec / 60);
+        const sec = remainingSec % 60;
+        text.innerText = `Осталось: ${min} мин. ${sec < 10 ? '0' : ''}${sec} сек.`;
+
+        if (elapsed >= UPDATE_TIME_SEC) {
+          clearInterval(updateInterval);
+          closeApp('window-progress');
+          playSound('notify');
+          isDriveDUnlocked = true;
+          openExplorerWindow('window-drive-d', 'Локальный диск (D:)');
+          currentActiveStage = 'idle';
+        }
+      }, 1000);
+    }
+
+    /* ЛОГИКА KVADRAT_8L.GPX */
+    function interactGpx() {
+      openApp('window-gpx-dialog', 'Мастер GPX');
+    }
+
+    function startGpxTransfer() {
+      closeApp('window-gpx-dialog');
+      openApp('window-gpx-progress', 'Экспорт GPX');
+      currentActiveStage = 'gpx';
+
+      let elapsed = 0;
+      const fill = document.getElementById('gpx-fill');
+      const text = document.getElementById('gpx-text');
+
+      if (gpxInterval) clearInterval(gpxInterval);
+
+      gpxInterval = setInterval(() => {
+        elapsed++;
+        const percent = (elapsed / GPX_TRANSFER_SEC) * 100;
+        fill.style.width = percent + '%';
+
+        const remainingSec = GPX_TRANSFER_SEC - elapsed;
+        const min = Math.floor(remainingSec / 60);
+        const sec = remainingSec % 60;
+        text.innerText = `Осталось: ${min} мин. ${sec < 10 ? '0' : ''}${sec} сек.`;
+
+        if (elapsed >= GPX_TRANSFER_SEC) {
+          clearInterval(gpxInterval);
+          closeApp('window-gpx-progress');
+          playSound('notify');
+          currentActiveStage = 'idle';
+          showOsDialog('Уведомление', 'Готово', 'info');
+        }
+      }, 1000);
+    }
+
+    /* ЧАСЫ: МОСКВА + 2009 ГОД */
+    function updateClock() {
+      const now = new Date();
+      const mskTime = new Intl.DateTimeFormat('ru-RU', {
+        timeZone: 'Europe/Moscow',
+        hour: '2-digit',
+        minute: '2-digit'
+      }).format(now);
+
+      const mskDay = new Intl.DateTimeFormat('ru-RU', { timeZone: 'Europe/Moscow', day: '2-digit', month: '2-digit' }).format(now);
+      const display = document.getElementById('clock-display');
+      display.innerText = mskTime;
+      display.title = `${mskDay}.2009`;
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Запуск системы
+    runSystemBoot();
+  </script>
+</body>
+</html>
