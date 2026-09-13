@@ -753,12 +753,49 @@
   <script>
     /* ОБЪЕКТ ЗВУКОВ: ТОЧНЫЕ ПУТИ К ФАЙЛАМ В РЕПОЗИТОРИИ GITHUB */
     const SOUNDS = {
+      systemStartup: './startup.mp3',
+      systemProcess: './proccees.mp3',
       startup: './windows-xp-startup.mp3',
       shutdown: './windows-xp-shutdown.mp3',
       error: './windows-xp-critical-stop.mp3',
       defaultBeep: './windows-xp-default.mp3',
       nav: './windows-navigation-start.mp3'
     };
+
+    let bgStartupAudio = null;
+    let bgProcessAudio = null;
+
+    function initBackgroundMusic() {
+      if (bgStartupAudio) {
+        bgStartupAudio.pause();
+        bgStartupAudio.currentTime = 0;
+      }
+      if (bgProcessAudio) {
+        bgProcessAudio.pause();
+        bgProcessAudio.currentTime = 0;
+      }
+
+      bgStartupAudio = new Audio(SOUNDS.systemStartup);
+      bgProcessAudio = new Audio(SOUNDS.systemProcess);
+      bgProcessAudio.loop = true;
+
+      bgStartupAudio.addEventListener('ended', () => {
+        bgProcessAudio.play().catch(() => {});
+      });
+
+      const playPromise = bgStartupAudio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          const unlock = () => {
+            bgStartupAudio.play().catch(() => {});
+            document.removeEventListener('click', unlock);
+            document.removeEventListener('touchstart', unlock);
+          };
+          document.addEventListener('click', unlock, { once: true });
+          document.addEventListener('touchstart', unlock, { once: true });
+        });
+      }
+    }
 
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
@@ -909,6 +946,7 @@
 
     /* ЦИКЛ ЗАПУСКА */
     function runSystemBoot() {
+      initBackgroundMusic();
       currentActiveStage = 'bios';
       document.getElementById('desktop').style.display = 'none';
       document.getElementById('bootscreen').style.display = 'none';
@@ -989,6 +1027,9 @@
       toggleStart();
       closeAllApps();
       playSound('shutdown');
+      if (bgStartupAudio) bgStartupAudio.pause();
+      if (bgProcessAudio) bgProcessAudio.pause();
+
       setTimeout(() => {
         if (updateInterval) clearInterval(updateInterval);
         if (gpxInterval) clearInterval(gpxInterval);
