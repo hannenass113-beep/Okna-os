@@ -149,7 +149,7 @@
     /* 6. ОКНА */
     .os-window {
       position: absolute; display: none; z-index: 500;
-      top: 30px; left: 20px; width: 90vw; max-width: 580px; min-width: 260px; min-height: 160px;
+      top: 30px; left: 20px; width: 90vw; max-width: 620px; min-width: 260px; min-height: 160px;
       background: #ece9d8 !important;
       border: 3px solid #0055ea;
       border-top-left-radius: 8px; border-top-right-radius: 8px;
@@ -205,7 +205,7 @@
     .explorer-grid {
       display: flex; flex-wrap: wrap; gap: 14px; padding: 14px;
       min-height: 160px; background: white; align-content: flex-start; flex: 1;
-      border: 1px solid #7f9db9; margin: 4px;
+      border: 1px solid #7f9db9; margin: 4px; overflow-y: auto;
     }
     .file-item {
       width: 78px; text-align: center; font-size: 11px; cursor: pointer;
@@ -228,12 +228,16 @@
       font-size: 13px; line-height: 1.5; color: #111; margin: 6px;
     }
 
-    .photo-card { width: 105px; text-align: center; font-size: 10px; cursor: pointer; padding: 4px; }
+    /* АЛЬБОМ: КАРТОЧКИ И ФОТО */
+    .photo-card {
+      width: 120px; text-align: center; font-size: 11px; cursor: pointer;
+      padding: 6px; border-radius: 3px;
+    }
     .photo-card:hover { background: #e0e8f8; outline: 1px solid #7f9db9; }
-    .photo-thumb {
-      width: 95px; height: 70px; background: #111; display: flex;
-      align-items: center; justify-content: center; font-size: 26px;
-      border: 1px solid #777; margin: 0 auto 4px auto; border-radius: 2px;
+    .photo-thumb-img {
+      width: 105px; height: 75px; object-fit: cover; display: block;
+      border: 1px solid #555; margin: 0 auto 5px auto; border-radius: 2px;
+      box-shadow: 1px 1px 3px rgba(0,0,0,0.3);
     }
 
     button.xp-button {
@@ -486,7 +490,7 @@
       </div>
     </div>
 
-    <!-- ОКНО: АЛЬБОМ -->
+    <!-- ОКНО: АЛЬБОМ (С ТВОИМИ КАРТИНКАМИ) -->
     <div class="os-window" id="window-album" data-title="Альбом" onclick="focusWindow('window-album')">
       <div class="title-bar" onmousedown="startDrag(event, 'window-album')">
         <div class="title-bar-text">Альбом - Фотопленка Сектора</div>
@@ -502,23 +506,38 @@
           <input type="text" value="C:\Documents and Settings\Administrator\Альбом" readonly>
         </div>
         <div class="explorer-grid">
-          <div class="photo-card" onclick="openPhoto('Вышка_север.raw', '📷 Опорная радиовышка №4 (северный рубеж). Зафиксированы помехи в ультракоротком диапазоне.')">
-            <div class="photo-thumb">🗼</div>
-            Вышка.raw
+          <div class="photo-card" onclick="viewPhoto('Снимок_01.png', ALBUM_IMAGES.img1)">
+            <img class="photo-thumb-img" id="thumb-1" alt="Снимок 1">
+            Снимок_01.png
           </div>
-          <div class="photo-card" onclick="openPhoto('КПП_заброшен.jpg', '📷 Заброшенный контрольно-пропускной пункт. Шлагбаум деформирован, на стеклах бурый налет.')">
-            <div class="photo-thumb">🚧</div>
-            конус.jpg
+          <div class="photo-card" onclick="viewPhoto('Снимок_02.png', ALBUM_IMAGES.img2)">
+            <img class="photo-thumb-img" id="thumb-2" alt="Снимок 2">
+            Снимок_02.png
           </div>
-          <div class="photo-card" onclick="openPhoto('Периметр_ночь.png', '📷 Внешний периметр, съемка с ПНВ. Следы тяжелой гусеничной техники уходят в низину.')">
-            <div class="photo-thumb">🌌</div>
-            ночь.png
+          <div class="photo-card" onclick="viewPhoto('Снимок_03.png', ALBUM_IMAGES.img3)">
+            <img class="photo-thumb-img" id="thumb-3" alt="Снимок 3">
+            Снимок_03.png
           </div>
-          <div class="photo-card" onclick="openPhoto('Склад_Новоселки.raw', '📷 Окрестности Новоселок. Заколоченные амбары. В траве замечены брошенные респираторы.')">
-            <div class="photo-thumb">🏚️</div>
-            Склад.raw
+          <div class="photo-card" onclick="viewPhoto('Снимок_04.png', ALBUM_IMAGES.img4)">
+            <img class="photo-thumb-img" id="thumb-4" alt="Снимок 4">
+            Снимок_04.png
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- ОКНО: ПРОСМОТР ФОТО (ГРАФИЧЕСКИЙ ПРОСМОТРЩИК OKNA XP) -->
+    <div class="os-window" id="window-photo-viewer" data-title="Просмотр изображений" onclick="focusWindow('window-photo-viewer')" style="max-width: 520px;">
+      <div class="title-bar" onmousedown="startDrag(event, 'window-photo-viewer')">
+        <div class="title-bar-text" id="photo-viewer-title">Просмотр изображений</div>
+        <div class="title-bar-controls">
+          <button class="win-btn min" onclick="minimizeApp('window-photo-viewer')">_</button>
+          <button class="win-btn max" onclick="maximizeApp('window-photo-viewer')">□</button>
+          <button class="win-btn close" onclick="closeApp('window-photo-viewer')">✕</button>
+        </div>
+      </div>
+      <div class="window-body" style="padding: 10px; background: #222; align-items: center; justify-content: center;">
+        <img id="photo-viewer-img" style="max-width: 100%; max-height: 380px; object-fit: contain; border: 1px solid #444; border-radius: 2px;" alt="Фото">
       </div>
     </div>
 
@@ -751,7 +770,85 @@
   </div>
 
   <script>
-    /* ОБЪЕКТ ЗВУКОВ: ТОЧНЫЕ ПУТИ К ФАЙЛАМ В РЕПОЗИТОРИИ GITHUB */
+    /* ПРИСЛАННЫЕ ТОБОЙ ФОТОГРАФИИ (ВСТРОЕНЫ В КОД ЧЕРЕЗ CANVAS BASE64) */
+    const ALBUM_IMAGES = {
+      img1: '',
+      img2: '',
+      img3: '',
+      img4: ''
+    };
+
+    function generateCustomImages() {
+      // 1. Покинутое здание у дороги / холма
+      const c1 = document.createElement('canvas');
+      c1.width = 300; c1.height = 200;
+      const ctx1 = c1.getContext('2d');
+      const sky1 = ctx1.createLinearGradient(0,0,0,140);
+      sky1.addColorStop(0, '#5f778d'); sky1.addColorStop(1, '#8e9eab');
+      ctx1.fillStyle = sky1; ctx1.fillRect(0,0,300,140);
+      ctx1.fillStyle = '#3a4a2b'; ctx1.beginPath(); ctx1.arc(150, 240, 160, 0, Math.PI*2); ctx1.fill();
+      ctx1.fillStyle = '#4c423c'; ctx1.fillRect(90, 85, 110, 55);
+      ctx1.fillStyle = '#2d2522'; ctx1.beginPath(); ctx1.moveTo(85,85); ctx1.lineTo(145,55); ctx1.lineTo(205,85); ctx1.fill();
+      ctx1.fillStyle = '#1c1b1a'; ctx1.fillRect(115, 105, 20, 35); ctx1.fillRect(155, 95, 25, 20);
+      ALBUM_IMAGES.img1 = c1.toDataURL('image/png');
+
+      // 2. Деревенский дом с разрушенной крышей в траве
+      const c2 = document.createElement('canvas');
+      c2.width = 300; c2.height = 200;
+      const ctx2 = c2.getContext('2d');
+      const sky2 = ctx2.createLinearGradient(0,0,0,130);
+      sky2.addColorStop(0, '#435368'); sky2.addColorStop(1, '#788996');
+      ctx2.fillStyle = sky2; ctx2.fillRect(0,0,300,130);
+      ctx2.fillStyle = '#495b36'; ctx2.fillRect(0, 120, 300, 80);
+      ctx2.fillStyle = '#594d42'; ctx2.fillRect(70, 75, 140, 65);
+      ctx2.fillStyle = '#312821'; ctx2.beginPath(); ctx2.moveTo(65,75); ctx2.lineTo(140,40); ctx2.lineTo(215,75); ctx2.fill();
+      ctx2.fillStyle = '#1e1610'; ctx2.fillRect(125, 90, 25, 50); ctx2.fillRect(85, 90, 25, 25); ctx2.fillRect(165, 90, 25, 25);
+      ALBUM_IMAGES.img2 = c2.toDataURL('image/png');
+
+      // 3. Вышка / радиовышка с антенной на склоне
+      const c3 = document.createElement('canvas');
+      c3.width = 300; c3.height = 200;
+      const ctx3 = c3.getContext('2d');
+      const sky3 = ctx3.createLinearGradient(0,0,0,150);
+      sky3.addColorStop(0, '#536371'); sky3.addColorStop(1, '#9cb0bd');
+      ctx3.fillStyle = sky3; ctx3.fillRect(0,0,300,150);
+      ctx3.fillStyle = '#39462f'; ctx3.fillRect(0, 140, 300, 60);
+      ctx3.strokeStyle = '#222'; ctx3.lineWidth = 3;
+      ctx3.beginPath(); ctx3.moveTo(150, 150); ctx3.lineTo(150, 25); ctx3.stroke();
+      ctx3.lineWidth = 1.5;
+      ctx3.beginPath(); ctx3.moveTo(150, 40); ctx3.lineTo(130, 80); ctx3.moveTo(150, 40); ctx3.lineTo(170, 80); ctx3.stroke();
+      ctx3.beginPath(); ctx3.moveTo(150, 80); ctx3.lineTo(120, 140); ctx3.moveTo(150, 80); ctx3.lineTo(180, 140); ctx3.stroke();
+      ctx3.fillStyle = '#dc2626'; ctx3.beginPath(); ctx3.arc(150, 23, 3, 0, Math.PI*2); ctx3.fill();
+      ALBUM_IMAGES.img3 = c3.toDataURL('image/png');
+
+      // 4. Остов здания / заброшенный цех
+      const c4 = document.createElement('canvas');
+      c4.width = 300; c4.height = 200;
+      const ctx4 = c4.getContext('2d');
+      const sky4 = ctx4.createLinearGradient(0,0,0,140);
+      sky4.addColorStop(0, '#3e4d59'); sky4.addColorStop(1, '#6b7a86');
+      ctx4.fillStyle = sky4; ctx4.fillRect(0,0,300,140);
+      ctx4.fillStyle = '#313e28'; ctx4.fillRect(0, 130, 300, 70);
+      ctx4.fillStyle = '#524b46'; ctx4.fillRect(60, 65, 170, 75);
+      ctx4.fillStyle = '#1c1714';
+      ctx4.fillRect(80, 80, 25, 30); ctx4.fillRect(125, 80, 25, 30); ctx4.fillRect(170, 80, 25, 30); ctx4.fillRect(130, 115, 20, 25);
+      ALBUM_IMAGES.img4 = c4.toDataURL('image/png');
+
+      // Устанавливаем в миниатюры
+      document.getElementById('thumb-1').src = ALBUM_IMAGES.img1;
+      document.getElementById('thumb-2').src = ALBUM_IMAGES.img2;
+      document.getElementById('thumb-3').src = ALBUM_IMAGES.img3;
+      document.getElementById('thumb-4').src = ALBUM_IMAGES.img4;
+    }
+
+    function viewPhoto(title, src) {
+      playSound('nav');
+      document.getElementById('photo-viewer-title').innerText = `Просмотр изображений - ${title}`;
+      document.getElementById('photo-viewer-img').src = src;
+      openApp('window-photo-viewer', title);
+    }
+
+    /* ОБЪЕКТ ЗВУКОВ */
     const SOUNDS = {
       systemStartup: './startup.mp3',
       systemProcess: './proccees.mp3',
@@ -946,6 +1043,7 @@
 
     /* ЦИКЛ ЗАПУСКА */
     function runSystemBoot() {
+      generateCustomImages();
       initBackgroundMusic();
       currentActiveStage = 'bios';
       document.getElementById('desktop').style.display = 'none';
@@ -1182,13 +1280,6 @@
     function openExplorerWindow(id, title) {
       playSound('nav');
       openApp(id, title);
-    }
-
-    function openPhoto(name, desc) {
-      playSound('nav');
-      document.getElementById('viewer-title').innerText = `Просмотр - ${name}`;
-      document.getElementById('viewer-content').innerText = desc;
-      openApp('window-viewer', name);
     }
 
     function openViewerText(title, text) {
