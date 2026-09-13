@@ -9,7 +9,7 @@
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
     body, html { width: 100%; height: 100%; overflow: hidden; font-family: Tahoma, 'Segoe UI', sans-serif; background: #000; }
 
-    /* СКРЫТАЯ КНОПКА ПРОПУСКА */
+    /* СКРЫТАЯ КНОПКА ПРОПУСКА ОЖИДАНИЙ */
     #skip-btn {
       position: fixed; top: 6px; right: 6px; width: 14px; height: 14px;
       background: #38bdf8; opacity: 0.35; z-index: 1000000; cursor: pointer;
@@ -43,6 +43,25 @@
       border-radius: 2px; position: absolute; animation: bootSlide 1.5s infinite linear;
     }
     @keyframes bootSlide { 0% { left: -35px; } 100% { left: 160px; } }
+
+    /* 2.5 ЭКРАН ПРИВЕТСТВИЯ (WELCOME SCREEN - 10 СЕК) */
+    #welcomescreen {
+      position: fixed; inset: 0; background: #003399; z-index: 9998;
+      display: none; align-items: center; justify-content: center;
+      background: radial-gradient(circle at center, #1b5edb 0%, #002277 100%);
+    }
+    .welcome-container {
+      display: flex; align-items: center; justify-content: center; gap: 40px;
+      border-left: 2px solid rgba(255,255,255,0.2); border-right: 2px solid rgba(255,255,255,0.2);
+      padding: 30px 50px;
+    }
+    .welcome-left { text-align: right; color: white; }
+    .welcome-right { display: flex; align-items: center; gap: 15px; color: white; }
+    .welcome-spinner {
+      width: 22px; height: 22px; border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff; border-radius: 50%; animation: spin 1s infinite linear;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
     /* 3. РАБОЧИЙ СТОЛ */
     #desktop {
@@ -127,11 +146,11 @@
       padding: 6px 12px; display: flex; justify-content: flex-end; gap: 8px;
     }
 
-    /* 6. АУТЕНТИЧНЫЕ ОКНА С ПОЛНОЙ НЕПРОЗРАЧНОСТЬЮ */
+    /* 6. ОКНА */
     .os-window {
       position: absolute; display: none; z-index: 500;
       top: 30px; left: 20px; width: 90vw; max-width: 580px; min-width: 260px; min-height: 160px;
-      background: #ece9d8 !important; /* 100% НЕПРОЗРАЧНОСТЬ */
+      background: #ece9d8 !important;
       border: 3px solid #0055ea;
       border-top-left-radius: 8px; border-top-right-radius: 8px;
       box-shadow: 3px 5px 15px rgba(0,0,0,0.5);
@@ -142,7 +161,6 @@
       max-width: none !important; resize: none !important; border-radius: 0;
     }
 
-    /* ШАПКА ОКНА */
     .title-bar {
       height: 28px;
       background: linear-gradient(to bottom, #0058ee 0%, #3593ff 4%, #288eff 6%, #0061e8 8%, #0055ea 10%, #004bd6 14%, #0036a7 100%);
@@ -168,12 +186,10 @@
       overflow-y: auto; display: flex; flex-direction: column;
     }
 
-    /* ДИАЛОГОВЫЕ ОКНА */
     .msg-dialog {
       resize: none !important; max-width: 400px !important; min-height: auto !important;
     }
 
-    /* ТУЛБАР И АДРЕСНАЯ СТРОКА */
     .explorer-toolbar {
       background: #ece9d8; border-bottom: 1px solid #d4d0c8;
       padding: 4px 6px; display: flex; align-items: center; gap: 8px; font-size: 11px;
@@ -198,7 +214,6 @@
     .file-item:hover { background: #e0e8f8; outline: 1px solid #7f9db9; }
     .file-icon { font-size: 30px; display: block; margin-bottom: 4px; }
 
-    /* WARD */
     .ward-menu {
       background: #ece9d8; border-bottom: 1px solid #d4d0c8; padding: 2px 6px;
       display: flex; gap: 10px; font-size: 11px;
@@ -213,7 +228,6 @@
       font-size: 13px; line-height: 1.5; color: #111; margin: 6px;
     }
 
-    /* АЛЬБОМ */
     .photo-card { width: 105px; text-align: center; font-size: 10px; cursor: pointer; padding: 4px; }
     .photo-card:hover { background: #e0e8f8; outline: 1px solid #7f9db9; }
     .photo-thumb {
@@ -222,7 +236,6 @@
       border: 1px solid #777; margin: 0 auto 4px auto; border-radius: 2px;
     }
 
-    /* КНОПКИ В СТИЛЕ XP */
     button.xp-button {
       background: linear-gradient(to bottom, #fff 0%, #ece9d8 50%, #dcd7c9 100%);
       border: 1px solid #003c74; border-radius: 3px; padding: 3px 12px;
@@ -275,6 +288,20 @@
     <div class="okna-logo">Macrosoft<br><span>Okna</span><sup style="font-size: 12px; color:#ff4500;">XP</sup></div>
     <div class="boot-loader">
       <div class="boot-bars"></div>
+    </div>
+  </div>
+
+  <!-- 2.5 ЭКРАН ПРИВЕТСТВИЯ (WELCOME SCREEN - 10 СЕК) -->
+  <div id="welcomescreen">
+    <div class="welcome-container">
+      <div class="welcome-left">
+        <div style="font-size: 24px; font-weight: bold; letter-spacing: 1px;">Macrosoft</div>
+        <div style="font-size: 32px; font-weight: bold; line-height: 28px;">Okna<span style="color: #ff8800; font-size: 16px; vertical-align: super;">XP</span></div>
+      </div>
+      <div class="welcome-right">
+        <div class="welcome-spinner"></div>
+        <div style="font-size: 20px; font-style: italic;">приветствие</div>
+      </div>
     </div>
   </div>
 
@@ -595,7 +622,7 @@
       </div>
     </div>
 
-    <!-- ДИАЛОГОВЫЕ ОКНА -->
+    <!-- УНИВЕРСАЛЬНЫЙ ДИАЛОГ СООБЩЕНИЙ -->
     <div class="os-window msg-dialog" id="window-sys-msg" data-title="Сообщение системы" onclick="focusWindow('window-sys-msg')">
       <div class="title-bar" onmousedown="startDrag(event, 'window-sys-msg')">
         <div class="title-bar-text" id="sys-msg-title">Сообщение системы</div>
@@ -706,8 +733,8 @@
         </div>
       </div>
       <div class="start-footer">
-        <button class="xp-button" onclick="restartOS()">Перезагрузка</button>
-        <button class="xp-button" onclick="restartOS()">Выключение</button>
+        <button class="xp-button" onclick="handlePowerAction('restart')">Перезагрузка</button>
+        <button class="xp-button" onclick="handlePowerAction('shutdown')">Выключение</button>
       </div>
     </div>
 
@@ -724,65 +751,114 @@
   </div>
 
   <script>
-    /* АУДИОСИСТЕМА */
+    /* ОБЪЕКТ ЗВУКОВ: ТОЧНЫЕ ПУТИ К ФАЙЛАМ В РЕПОЗИТОРИИ GITHUB */
+    const SOUNDS = {
+      startup: './windows-xp-startup.mp3',
+      shutdown: './windows-xp-shutdown.mp3',
+      error: './windows-xp-critical-stop.mp3',
+      defaultBeep: './windows-xp-default.mp3',
+      nav: './windows-navigation-start.mp3'
+    };
+
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
     function playSound(type) {
+      let src = '';
+      if (type === 'startup') src = SOUNDS.startup;
+      else if (type === 'shutdown') src = SOUNDS.shutdown;
+      else if (type === 'error' || type === 'critical') src = SOUNDS.error;
+      else if (type === 'default') src = SOUNDS.defaultBeep;
+      else if (type === 'nav') src = SOUNDS.nav;
+
+      if (src) {
+        const audio = new Audio(src);
+        audio.play().catch(() => playSynthesizedFallback(type));
+      } else {
+        playSynthesizedFallback(type);
+      }
+    }
+
+    /* РЕЗЕРВНЫЙ СИНТЕЗАТОР */
+    function playSynthesizedFallback(type) {
       if (audioCtx.state === 'suspended') audioCtx.resume();
       const now = audioCtx.currentTime;
 
       if (type === 'startup') {
-        const notes = [155.56, 233.08, 311.13, 466.16, 622.25];
-        notes.forEach((freq, index) => {
+        [155.56, 233.08, 311.13, 466.16, 622.25].forEach((freq, i) => {
           const osc = audioCtx.createOscillator();
           const gain = audioCtx.createGain();
           osc.type = 'sine';
           osc.frequency.value = freq;
-          gain.gain.setValueAtTime(0, now + index * 0.1);
-          gain.gain.linearRampToValueAtTime(0.12, now + index * 0.1 + 0.1);
+          gain.gain.setValueAtTime(0, now + i * 0.1);
+          gain.gain.linearRampToValueAtTime(0.12, now + i * 0.1 + 0.1);
           gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
           osc.connect(gain);
           gain.connect(audioCtx.destination);
-          osc.start(now + index * 0.1);
+          osc.start(now + i * 0.1);
           osc.stop(now + 3.8);
         });
-      } else if (type === 'error') {
+      } else if (type === 'shutdown') {
+        [622.25, 466.16, 311.13, 155.56].forEach((freq, i) => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.value = freq;
+          gain.gain.setValueAtTime(0.1, now + i * 0.12);
+          gain.gain.exponentialRampToValueAtTime(0.0001, now + i * 0.12 + 0.6);
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+          osc.start(now + i * 0.12);
+          osc.stop(now + i * 0.12 + 0.6);
+        });
+      } else if (type === 'error' || type === 'critical') {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'sawtooth';
         osc.frequency.setValueAtTime(140, now);
-        osc.frequency.linearRampToValueAtTime(100, now + 0.25);
+        osc.frequency.linearRampToValueAtTime(90, now + 0.25);
         gain.gain.setValueAtTime(0.2, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.3);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.28);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start(now);
-        osc.stop(now + 0.3);
-      } else if (type === 'notify') {
+        osc.stop(now + 0.28);
+      } else if (type === 'default') {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, now);
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start(now);
+        osc.stop(now + 0.15);
+      } else if (type === 'nav') {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
         osc.type = 'triangle';
-        osc.frequency.setValueAtTime(587.33, now);
-        osc.frequency.setValueAtTime(880, now + 0.15);
-        gain.gain.setValueAtTime(0.15, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.5);
+        osc.frequency.setValueAtTime(900, now);
+        gain.gain.setValueAtTime(0.05, now);
+        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
         osc.connect(gain);
         gain.connect(audioCtx.destination);
         osc.start(now);
-        osc.stop(now + 0.5);
+        osc.stop(now + 0.04);
       }
     }
 
-    /* ТАЙМЕРЫ И ПЕРЕМЕННЫЕ */
-    const BIOS_TIME = 120000;
-    const BOOT_TIME = 120000;
-    const UPDATE_TIME_SEC = 15 * 60;
-    const GPX_TRANSFER_SEC = 3 * 60;
+    /* ТАЙМЕРЫ */
+    const BIOS_TIME = 120000;         // 2 минуты
+    const BOOT_TIME = 120000;         // 2 минуты
+    const WELCOME_TIME = 10000;       // 10 секунд
+    const UPDATE_TIME_SEC = 15 * 60;  // 15 минут
+    const GPX_TRANSFER_SEC = 3 * 60;  // 3 минуты
 
     let isDriveDUnlocked = false;
     let tapTimeout = null;
     let biosInterval = null;
     let bootTimeout = null;
+    let welcomeTimeout = null;
     let updateInterval = null;
     let gpxInterval = null;
     let currentActiveStage = 'bios';
@@ -831,11 +907,12 @@
 Основание: Агентурная наводка о возможном обнаружении майора Ковальчука. Род деятельности и текущее состояние неизвестны.
 Задача: Провести скрытный поиск и визуальную идентификацию. В боестолкновения не вступать, захват не производить. По завершении идентификации передать координаты и запросить эвакуации. В случае форс мажорных обстоятельств, в точке эвакуации есть дополнительное снаряжение.`;
 
-    /* ИНИЦИАЛИЗАЦИЯ И СИСТЕМНЫЙ ЗАПУСК */
+    /* ЦИКЛ ЗАПУСКА */
     function runSystemBoot() {
       currentActiveStage = 'bios';
       document.getElementById('desktop').style.display = 'none';
       document.getElementById('bootscreen').style.display = 'none';
+      document.getElementById('welcomescreen').style.display = 'none';
       const bios = document.getElementById('bios-screen');
       bios.style.display = 'flex';
 
@@ -889,44 +966,66 @@
 
     function finishBootStage() {
       if (bootTimeout) clearTimeout(bootTimeout);
-      currentActiveStage = 'idle';
+      currentActiveStage = 'welcome';
       document.getElementById('bootscreen').style.display = 'none';
-      document.getElementById('desktop').style.display = 'block';
+
+      const welcome = document.getElementById('welcomescreen');
+      welcome.style.display = 'flex';
       playSound('startup');
+
+      welcomeTimeout = setTimeout(() => {
+        finishWelcomeStage();
+      }, WELCOME_TIME);
+    }
+
+    function finishWelcomeStage() {
+      if (welcomeTimeout) clearTimeout(welcomeTimeout);
+      currentActiveStage = 'idle';
+      document.getElementById('welcomescreen').style.display = 'none';
+      document.getElementById('desktop').style.display = 'block';
+    }
+
+    function handlePowerAction(action) {
+      toggleStart();
+      closeAllApps();
+      playSound('shutdown');
+      setTimeout(() => {
+        if (updateInterval) clearInterval(updateInterval);
+        if (gpxInterval) clearInterval(gpxInterval);
+        isDriveDUnlocked = false;
+        runSystemBoot();
+      }, 2000);
     }
 
     function restartOS() {
-      toggleStart();
-      closeAllApps();
-      if (updateInterval) clearInterval(updateInterval);
-      if (gpxInterval) clearInterval(gpxInterval);
-      isDriveDUnlocked = false;
-      runSystemBoot();
+      handlePowerAction('restart');
     }
 
-    /* СКРЫТАЯ КНОПКА ПРОПУСКА */
+    /* СКРЫТЫЙ ПРОПУСК */
     function triggerSkip() {
       if (currentActiveStage === 'bios') {
         finishBiosStage();
       } else if (currentActiveStage === 'boot') {
         finishBootStage();
+      } else if (currentActiveStage === 'welcome') {
+        finishWelcomeStage();
       } else if (currentActiveStage === 'update') {
         if (updateInterval) clearInterval(updateInterval);
         closeApp('window-progress');
-        playSound('notify');
+        playSound('default');
         isDriveDUnlocked = true;
         openExplorerWindow('window-drive-d', 'Локальный диск (D:)');
         currentActiveStage = 'idle';
       } else if (currentActiveStage === 'gpx') {
         if (gpxInterval) clearInterval(gpxInterval);
         closeApp('window-gpx-progress');
-        playSound('notify');
+        playSound('default');
         currentActiveStage = 'idle';
         showOsDialog('Уведомление', 'Готово', 'info');
       }
     }
 
-    /* ДИАЛОГИ ВНУТРИ ОС */
+    /* ДИАЛОГИ ВНУТРИ СИСТЕМЫ */
     function showOsDialog(title, message, type = 'info') {
       const titleElem = document.getElementById('sys-msg-title');
       const textElem = document.getElementById('sys-msg-text');
@@ -935,14 +1034,15 @@
       titleElem.innerText = title;
       textElem.innerText = message;
 
-      if (type === 'error') {
+      if (type === 'error' || type === 'critical') {
         iconElem.innerText = '❌';
-        playSound('error');
+        playSound('critical');
       } else if (type === 'warning') {
         iconElem.innerText = '⚠️';
         playSound('error');
       } else {
         iconElem.innerText = 'ℹ️';
+        playSound('default');
       }
 
       openApp('window-sys-msg', title);
@@ -1039,26 +1139,31 @@
     }
 
     function openExplorerWindow(id, title) {
+      playSound('nav');
       openApp(id, title);
     }
 
     function openPhoto(name, desc) {
+      playSound('nav');
       document.getElementById('viewer-title').innerText = `Просмотр - ${name}`;
       document.getElementById('viewer-content').innerText = desc;
       openApp('window-viewer', name);
     }
 
     function openViewerText(title, text) {
+      playSound('nav');
       document.getElementById('viewer-title').innerText = title;
       document.getElementById('viewer-content').innerText = text;
       openApp('window-viewer', title);
     }
 
     function openOrderFile() {
+      playSound('nav');
       openViewerText('Блокнот - ORDER.txt', ORDER_FILE_TEXT);
     }
 
     function openDutyJournal() {
+      playSound('nav');
       const journalText = 
 `02:14 - Просадка напряжения на 3-й подстанции.
 03:40 - Помехи на длинных волнах. С востока слышен гул.
@@ -1072,7 +1177,7 @@
       menu.style.display = (menu.style.display === 'block') ? 'none' : 'block';
     }
 
-    /* ОБРАБОТЧИКИ ДЛЯ СМАРТФОНОВ И ПК */
+    /* МОБИЛЬНЫЙ ДВОЙНОЙ ТАП */
     function mobileTap(windowId, title) {
       if (!tapTimeout) {
         tapTimeout = setTimeout(() => { tapTimeout = null; }, 300);
@@ -1103,12 +1208,12 @@
       }
     }
 
-    /* ЛОГИКА ДИСКА D И ОБНОВЛЕНИЯ */
+    /* ДИСК D */
     function openDriveD() {
       if (isDriveDUnlocked) {
         openExplorerWindow('window-drive-d', 'Локальный диск (D:)');
       } else {
-        playSound('error');
+        playSound('critical');
         openApp('window-update-dialog', 'Обновление');
       }
     }
@@ -1137,7 +1242,7 @@
         if (elapsed >= UPDATE_TIME_SEC) {
           clearInterval(updateInterval);
           closeApp('window-progress');
-          playSound('notify');
+          playSound('default');
           isDriveDUnlocked = true;
           openExplorerWindow('window-drive-d', 'Локальный диск (D:)');
           currentActiveStage = 'idle';
@@ -1145,8 +1250,9 @@
       }, 1000);
     }
 
-    /* ЛОГИКА KVADRAT_8L.GPX */
+    /* GPX */
     function interactGpx() {
+      playSound('default');
       openApp('window-gpx-dialog', 'Мастер GPX');
     }
 
@@ -1174,14 +1280,14 @@
         if (elapsed >= GPX_TRANSFER_SEC) {
           clearInterval(gpxInterval);
           closeApp('window-gpx-progress');
-          playSound('notify');
+          playSound('default');
           currentActiveStage = 'idle';
           showOsDialog('Уведомление', 'Готово', 'info');
         }
       }, 1000);
     }
 
-    /* ЧАСЫ: МОСКВА + 2009 ГОД */
+    /* ЧАСЫ */
     function updateClock() {
       const now = new Date();
       const mskTime = new Intl.DateTimeFormat('ru-RU', {
